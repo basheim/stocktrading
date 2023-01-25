@@ -14,4 +14,4 @@ fi
 
 docker pull basheim/stock-trader:latest
 
-docker run --env-file .env -dp 5050:5050 --name stock-trader stock-trader:latest
+docker run --env-file .env -dp 5050:5050 --name stock-trader basheim/stock-trader:latest
