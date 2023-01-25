@@ -33,6 +33,12 @@ def deactivate():
     return {"status": "deactivation_completed"}
 
 
+@app.post("/py/api/stock")
+@auth.login_required()
+def add_stock():
+    return {"status": "stock_added"}
+
+
 @auth.verify_password
 def verify_password(username, password):
     secret_json = json.loads(get_secret(Secret.PASSWORD)["SecretString"])
