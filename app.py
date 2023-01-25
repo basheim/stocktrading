@@ -1,6 +1,8 @@
 from flask import Flask
-from lib.rds_manager import get_stocks, delete_stock, post_stock
-from datetime import datetime, timezone
+from flask_httpauth import HTTPBasicAuth
+from lib.secrets_manager import get_secret, Secret
+import json
+auth = HTTPBasicAuth()
 
 app = Flask(__name__)
 
@@ -10,7 +12,19 @@ def health():
     return {"status": "healthy"}
 
 
-@app.get("/py/api/test")
-def stocks_post():
-    post_stock("test", "t", 120, 5, datetime.now(timezone.utc))
-    return []
+@app.post("/py/api/activate")
+@auth.login_required()
+def activate():
+    pass
+
+
+@app.post("/py/api/deactivate")
+@auth.login_required()
+def deactivate():
+    pass
+
+
+@auth.verify_password
+def verify_password(username, password):
+    secret_json = json.loads(get_secret(Secret.DB)["SecretString"])
+    return username == secret_json["user"] and password == secret_json["password"]

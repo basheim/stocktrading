@@ -23,6 +23,7 @@ docutils==0.17.1
 eyeD3==0.8.10
 filelock==3.6.0
 Flask==2.2.2
+Flask-HTTPAuth==4.7.0
 grpcio==1.30.2
 guake==3.8.5
 gyp==0.1

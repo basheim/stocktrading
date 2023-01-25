@@ -1,11 +1,11 @@
-from lib.secrets_manager import Secret,get_secret,get_secret_id
+from lib.secrets_manager import Secret, get_secret
 from uuid import uuid4
-from datetime import date, datetime, timedelta, time
+from datetime import datetime
 import mysql.connector
 import json
 
 __arn = "arn:aws:rds:us-west-2:796569311964:cluster:beans-sql-db"
-secret_json = json.loads(get_secret(get_secret_id(Secret.DB))["SecretString"])
+secret_json = json.loads(get_secret(Secret.DB)["SecretString"])
 __db = mysql.connector.connect(
             host="beans-sql-db.clj2unssy8o7.us-west-2.rds.amazonaws.com",
             user=secret_json["username"],
