@@ -1,3 +1,4 @@
 /.aws
 /.idea
+.env
 **/__pycache__/
