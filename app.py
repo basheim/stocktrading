@@ -1,15 +1,24 @@
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
-from lib.secrets_manager import get_secret, Secret
+from lib.clients.secrets_manager import get_secret, Secret
+from lib.clients.alpaca_manager import get_positions
 import json
-auth = HTTPBasicAuth()
 
+auth = HTTPBasicAuth()
 app = Flask(__name__)
 
 
 @app.get("/py/api/health")
 def health():
     return {"status": "healthy"}
+
+
+"""
+ Comment in to test
+"""
+@app.get("/py/api/test")
+def test():
+    return str(get_positions())
 
 
 @app.post("/py/api/activate")

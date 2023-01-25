@@ -7,6 +7,7 @@ __cached_secrets = {}
 class Secret(Enum):
     DB = 1
     PASSWORD = 2
+    ALPACA = 3
 
 
 def get_secret(name: Secret) -> {}:
@@ -20,3 +21,4 @@ def get_secret_id(name: Secret) -> str:
     match name:
         case Secret.DB: return "prod/beansql"
         case Secret.PASSWORD: return "prod/api-password"
+        case Secret.ALPACA: return "alpaca/keys"

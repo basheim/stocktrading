@@ -1,4 +1,4 @@
-from lib.secrets_manager import Secret, get_secret
+from lib.clients.secrets_manager import Secret, get_secret
 from uuid import uuid4
 from datetime import datetime
 import mysql.connector
@@ -24,23 +24,37 @@ class SqlData:
         self.columns = columns
 
 
+def update_account(account_id: str, amount: int) -> None:
+    __commit_sql(
+        "UPDATE account_status SET amount=%s WHERE id=%s;",
+        tuple([amount, account_id])
+    )
+
+
+def insert_transaction(stock_id: str, price: int, quantity: int, name: str, action: str, date: datetime) -> None:
+    __commit_sql(
+        "INSERT INTO stock_transactions (id,stock_id,name,quantity,price,action,date) VALUES (%s, %s, %s, %s, %s, %s, %s);",
+        tuple([str(uuid4()), stock_id, name, quantity, price, action, str(date)])
+    )
+
+
 def get_stocks() -> SqlData:
     return __fetch_sql(
         "SELECT * FROM stocks;"
     )
 
 
-def update_stock(name: str, code: str, price: int, quantity: int, purchase_date: datetime) -> None:
+def update_stock(stock_id: str, quantity: int) -> None:
     __commit_sql(
-        "INSERT INTO stocks (id,name,code,price,quantity,date) VALUES (%s, %s, %s, %s, %s, %s);",
-        tuple([str(uuid4()), name, code, price, quantity, str(purchase_date)])
+        "UPDATE stocks SET quantity=%s WHERE id=%s;",
+        tuple([quantity, stock_id])
     )
 
 
-def insert_stock(name: str, code: str, price: int, quantity: int, purchase_date: datetime) -> None:
+def insert_stock(name: str, code: str, quantity: int) -> None:
     __commit_sql(
-        "INSERT INTO stocks (id,name,code,price,quantity,date) VALUES (%s, %s, %s, %s, %s, %s);",
-        tuple([str(uuid4()), name, code, price, quantity, str(purchase_date)])
+        "INSERT INTO stocks (id,name,code,quantity) VALUES (%s, %s, %s, %s);",
+        tuple([str(uuid4()), name, code, quantity])
     )
 
 
