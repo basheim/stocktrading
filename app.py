@@ -4,7 +4,8 @@ from flask import Flask, request, Response
 from flask_httpauth import HTTPBasicAuth
 from lib.clients.rds_manager import insert_stock, delete_stock
 from lib.clients.secrets_manager import get_secret, Secret
-from lib.clients.alpaca_manager import get_historical_market_price, Steps, TimeRange, get_current_market_price
+from lib.clients.alpaca_manager import get_current_market_price
+from lib.auto_trader.schedule import activate, deactivate, active_jobs
 import json
 
 auth = HTTPBasicAuth()
@@ -16,24 +17,18 @@ def health():
     return {"status": "healthy"}
 
 
-"""
- Comment in to test
-"""
-@app.get("/py/api/test")
-def test():
-    return str(get_historical_market_price("SPY", Steps.HOUR, TimeRange.DAY))
-
-
 @app.post("/py/api/activate")
 @auth.login_required()
-def activate():
-    return {"status": "activation_completed"}
+def activate_method():
+    activate()
+    return {"status": "activation_completed", "jobs": str(active_jobs)}
 
 
 @app.post("/py/api/deactivate")
 @auth.login_required()
-def deactivate():
-    return {"status": "deactivation_completed"}
+def deactivate_method():
+    deactivate()
+    return {"status": "deactivation_completed", "jobs": str(active_jobs)}
 
 
 @app.delete("/py/api/stock/<stock_id>")
