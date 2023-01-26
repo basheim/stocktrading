@@ -3,9 +3,10 @@ from enum import Enum
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
-from alpaca.data import StockHistoricalDataClient
+from alpaca.data import StockHistoricalDataClient, Quote
 from alpaca.data.requests import StockLatestQuoteRequest, StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
+from alpaca.data.models import Bar
 from lib.clients.secrets_manager import Secret, get_secret
 from datetime import datetime, timedelta
 
@@ -44,7 +45,7 @@ class TimeRange(Enum):
     MONTH = 3
 
 
-def get_historical_market_price(code: str, step: Steps, time_range: TimeRange) -> []:
+def get_historical_market_prices(codes: [str], step: Steps, time_range: TimeRange) -> {str: [Bar]} or [Bar]:
     days = 0
     configured_step = TimeFrame.Day
 
@@ -61,23 +62,30 @@ def get_historical_market_price(code: str, step: Steps, time_range: TimeRange) -
 
     return market_client.get_stock_bars(
         StockBarsRequest(
-            symbol_or_symbols=code,
+            symbol_or_symbols=codes,
             timeframe=configured_step,
             start=start_time
         )
-    )[code]
+    ).data
 
 
-def get_current_market_price(code: str) -> {}:
+def get_historical_market_price(code: str, step: Steps, time_range: TimeRange) -> [Bar]:
+    return get_historical_market_prices([code], step, time_range)[code]
+
+
+def get_current_market_prices(codes: [str]) -> {str, Quote} or Quote:
     return market_client.get_stock_latest_quote(
         StockLatestQuoteRequest(
-            symbol_or_symbols=code
+            symbol_or_symbols=codes
         )
-    )[code]
+    )
+
+
+def get_current_market_price(code: str) -> Quote:
+    return get_current_market_prices([code])[code]
 
 
 def get_account_info() -> {}:
-    print(str(trading_client.get_account()))
     return trading_client.get_account()
 
 
