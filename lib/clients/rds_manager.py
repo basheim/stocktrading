@@ -51,11 +51,13 @@ def update_stock(stock_id: str, quantity: int) -> None:
     )
 
 
-def insert_stock(name: str, code: str, quantity: int) -> None:
+def insert_stock(name: str, code: str, quantity: int) -> str:
+    stock_id = str(uuid4())
     __commit_sql(
         "INSERT INTO stocks (id,name,code,quantity) VALUES (%s, %s, %s, %s);",
-        tuple([str(uuid4()), name, code, quantity])
+        tuple([stock_id, name, code, quantity])
     )
+    return stock_id
 
 
 def delete_stock(stock_id: str) -> None:
