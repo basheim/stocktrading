@@ -5,12 +5,13 @@ from flask_httpauth import HTTPBasicAuth
 from lib.clients.rds_manager import insert_stock, delete_stock
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
-from lib.auto_trader.schedule import activate, deactivate, active_jobs
+from lib.auto_trader.schedule import activate, deactivate, active_jobs, keep_db_open
 import json
 import logging
 
 auth = HTTPBasicAuth()
 app = Flask(__name__)
+keep_db_open()
 
 
 if __name__ != '__main__':
