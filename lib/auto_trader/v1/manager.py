@@ -4,6 +4,8 @@ from lib.auto_trader.v1.history import create_histories
 from lib.auto_trader.v1.decision import should_buy, should_sell
 from lib.clients.alpaca_manager import get_account_info
 from lib.auto_trader.v1.action import buy, sell
+from flask import current_app
+
 
 def orchestrator():
     # Pull all stocks that are being looked at
@@ -18,13 +20,16 @@ def orchestrator():
     # Determine if buy or sell
     buy_assessments = 0
     for assessment in assessments.values():
-        should_sell(assessment)
-        should_buy(assessment)
-        if assessment.buy:
-            buy_assessments += 1
-        if assessment.sell:
-            sell(assessment)
+        if assessment.current.ask_price > 0:
+            assessment.sell = should_sell(assessment)
+            assessment.buy = should_buy(assessment)
+            if assessment.buy:
+                buy_assessments += 1
+            if assessment.sell:
+                sell(assessment)
     account = float(get_account_info().buying_power) // buy_assessments if buy_assessments > 0 else 0
+    current_app.logger.info(f"account: {account}")
+    current_app.logger.info(f"buy_assessments: {buy_assessments}")
     for assessment in assessments.values():
         if assessment.buy:
             buy(assessment, account)

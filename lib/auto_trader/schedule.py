@@ -9,7 +9,7 @@ active_jobs: [Job] = []
 
 def activate():
     active_jobs.append(
-        scheduler.add_job(orchestrator, CronTrigger.from_crontab('0,30 15-20 * * mon-fri'), replace_existing=True)
+        scheduler.add_job(orchestrator, CronTrigger.from_crontab('0,30 15-20 * * mon-fri', 'utc'), replace_existing=True)
     )
     scheduler.start()
 

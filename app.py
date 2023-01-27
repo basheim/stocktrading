@@ -5,7 +5,6 @@ from flask_httpauth import HTTPBasicAuth
 from lib.clients.rds_manager import insert_stock, delete_stock
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
-from lib.auto_trader.v1.manager import orchestrator
 from lib.auto_trader.schedule import activate, deactivate, active_jobs
 import json
 
@@ -48,7 +47,7 @@ def add_stock_method():
     try:
         get_current_market_price(code)
     except (APIError, ValidationError) as e:
-        print(str(e))
+        app.logger.info(str(e))
         return Response(f'{{"error": "Validation Error", "code": "{code}"}}', status=400, mimetype="application/json")
     stock_id = insert_stock(name, code, 0, 0)
     return {"status": "stock_added", "data": stock_id}
