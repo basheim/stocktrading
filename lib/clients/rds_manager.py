@@ -1,4 +1,6 @@
 from lib.clients.secrets_manager import Secret, get_secret
+from lib.objects.sql_data import SqlData
+from lib.objects.stock import Stock
 from uuid import uuid4
 from datetime import datetime
 import mysql.connector
@@ -15,47 +17,50 @@ __db = mysql.connector.connect(
 __db_cursor = __db.cursor(buffered=True)
 
 
-class SqlData:
-    columns: []
-    data: []
+"""
+Test Code
+"""
+CURRENT_ACCOUNT_ID = "testCurrent"
 
-    def __init__(self, columns, data):
-        self.data = data
-        self.columns = columns
+"""
+Real Code
+CURRENT_ACCOUNT_ID = "current"
+"""
 
 
-def update_account(account_id: str, amount: int) -> None:
+def update_account(amount: float) -> None:
     __commit_sql(
         "UPDATE account_status SET amount=%s WHERE id=%s;",
-        tuple([amount, account_id])
+        tuple([amount, CURRENT_ACCOUNT_ID])
     )
 
 
-def insert_transaction(stock_id: str, price: int, quantity: int, name: str, action: str, date: datetime) -> None:
+def insert_transaction(stock_id: str, price: float, quantity: float, name: str, action: str, date: datetime) -> None:
     __commit_sql(
         "INSERT INTO stock_transactions (id,stock_id,name,quantity,price,action,date) VALUES (%s, %s, %s, %s, %s, %s, %s);",
         tuple([str(uuid4()), stock_id, name, quantity, price, action, str(date)])
     )
 
 
-def get_stocks() -> SqlData:
-    return __fetch_sql(
+def get_stocks() -> [Stock]:
+    stocks = __fetch_sql(
         "SELECT * FROM stocks;"
     )
+    return [Stock.build(x) for x in stocks.data]
 
 
-def update_stock(stock_id: str, quantity: int) -> None:
+def update_stock(stock_id: str, quantity: float, price: float) -> None:
     __commit_sql(
-        "UPDATE stocks SET quantity=%s WHERE id=%s;",
-        tuple([quantity, stock_id])
+        "UPDATE stocks SET (quantity=%s, price=%s) WHERE id=%s;",
+        tuple([quantity, price, stock_id])
     )
 
 
-def insert_stock(name: str, code: str, quantity: int) -> str:
+def insert_stock(name: str, code: str, quantity: float, price: float) -> str:
     stock_id = str(uuid4())
     __commit_sql(
-        "INSERT INTO stocks (id,name,code,quantity) VALUES (%s, %s, %s, %s);",
-        tuple([stock_id, name, code, quantity])
+        "INSERT INTO stocks (id,name,code,quantity,price) VALUES (%s, %s, %s, %s, %s);",
+        tuple([stock_id, name, code, quantity, price])
     )
     return stock_id
 

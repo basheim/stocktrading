@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from alpaca.trading.client import TradingClient
+from alpaca.trading.client import TradingClient, TradeAccount
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.data import StockHistoricalDataClient, Quote
@@ -17,8 +17,6 @@ Test Code
 secret_json = json.loads(get_secret(Secret.ALPACA)["SecretString"])
 API_KEY = secret_json["test_account_id"]
 SECRET_KEY = secret_json["test_account_secret_id"]
-INITIAL_ACCOUNT_ID = "testInitial"
-CURRENT_ACCOUNT_ID = "testCurrent"
 trading_client = TradingClient(API_KEY, SECRET_KEY, paper=True)
 
 """
@@ -26,8 +24,6 @@ Real Code
 secret_json = json.loads(get_secret(Secret.ALPACA)["SecretString"])
 API_KEY = secret_json["account_id"]
 SECRET_KEY = secret_json["account_secret_id"]
-INITIAL_ACCOUNT_ID = "initial"
-CURRENT_ACCOUNT_ID = "current"
 trading_client = TradingClient(API_KEY, SECRET_KEY, paper=False)
 """
 
@@ -85,7 +81,7 @@ def get_current_market_price(code: str) -> Quote:
     return get_current_market_prices([code])[code]
 
 
-def get_account_info() -> {}:
+def get_account_info() -> TradeAccount:
     return trading_client.get_account()
 
 

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from lib.auto_trader.history_assessment import HistoryAssessment
+from lib.objects.history_assessment import HistoryAssessment
 from datetime import datetime
 
 
