@@ -27,7 +27,8 @@ def orchestrator():
                 buy_assessments += 1
             if assessment.sell:
                 sell(assessment)
-    account = float(get_account_info().buying_power) // buy_assessments if buy_assessments > 0 else 0
+    buying_power = float(get_account_info().buying_power)
+    account = float(buying_power - (buying_power * 0.1)) // buy_assessments if buy_assessments > 0 else 0
     current_app.logger.info(f"account: {account}")
     current_app.logger.info(f"buy_assessments: {buy_assessments}")
     for assessment in assessments.values():

@@ -85,12 +85,20 @@ def get_account_info() -> TradeAccount:
     return trading_client.get_account()
 
 
+def get_order(order_id: str):
+    return trading_client.get_order_by_id(order_id)
+
+
+def cancel_order(order_id: str):
+    return trading_client.cancel_order_by_id(order_id)
+
+
 def execute_buy(code: str, quantity: float) -> {}:
     request = MarketOrderRequest(
         symbol=code,
         qty=quantity,
         side=OrderSide.BUY,
-        time_in_force=TimeInForce.GTC
+        time_in_force=TimeInForce.DAY
     )
     return trading_client.submit_order(request)
 

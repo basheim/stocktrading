@@ -24,7 +24,7 @@ def __has_downward_slope(assessment: HistoryAssessment):
 
 
 def __owned(assessment: HistoryAssessment):
-    return assessment.owned != 0
+    return assessment.owned != 0.0
 
 
 def __has_slope(assessment: HistoryAssessment):

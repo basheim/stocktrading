@@ -1,6 +1,3 @@
-from lib.objects.sql_data import SqlData
-
-
 class Stock:
     stock_id: str
     code: str

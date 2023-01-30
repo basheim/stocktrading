@@ -37,7 +37,7 @@ def update_account(amount: float) -> None:
 
 def insert_transaction(stock_id: str, price: float, quantity: float, name: str, action: str, date: datetime) -> None:
     __commit_sql(
-        "INSERT INTO stock_transactions (id,stock_id,name,quantity,price,action,date) VALUES (%s, %s, %s, %s, %s, %s, %s);",
+        "INSERT INTO stock_transactions (id,stockId,name,quantity,price,action,date) VALUES (%s, %s, %s, %s, %s, %s, %s);",
         tuple([str(uuid4()), stock_id, name, quantity, price, action, str(date)])
     )
 
@@ -51,7 +51,7 @@ def get_stocks() -> [Stock]:
 
 def update_stock(stock_id: str, quantity: float, price: float) -> None:
     __commit_sql(
-        "UPDATE stocks SET (quantity=%s, price=%s) WHERE id=%s;",
+        "UPDATE stocks SET quantity=%s, price=%s WHERE id=%s;",
         tuple([quantity, price, stock_id])
     )
 
