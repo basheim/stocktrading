@@ -9,9 +9,9 @@ active_jobs: [Job] = []
 background_jobs: [Job] = []
 
 
-def activate():
+def activate(app):
     active_jobs.append(
-        scheduler.add_job(orchestrator, CronTrigger.from_crontab('0,30 15-20 * * mon-fri', 'utc'), replace_existing=True)
+        scheduler.add_job(lambda: with_function(app, orchestrator), CronTrigger.from_crontab('0,30 15-20 * * mon-fri', 'utc'), replace_existing=True)
     )
 
 
@@ -20,9 +20,14 @@ def deactivate():
     job.remove()
 
 
-def keep_db_open():
+def keep_db_open(app):
     background_jobs.append(
-        scheduler.add_job(get_stocks, CronTrigger.from_crontab('0 * * * *', 'utc'),
+        scheduler.add_job(lambda: with_function(app, get_stocks), CronTrigger.from_crontab('0 * * * *', 'utc'),
                           replace_existing=True)
     )
     scheduler.start()
+
+
+def with_function(app, func):
+    with app.app_context():
+        func()

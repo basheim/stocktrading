@@ -11,7 +11,7 @@ import logging
 
 auth = HTTPBasicAuth()
 app = Flask(__name__)
-keep_db_open()
+keep_db_open(app)
 
 
 if __name__ != '__main__':
@@ -28,7 +28,7 @@ def health():
 @app.post("/py/api/activate")
 @auth.login_required()
 def activate_method():
-    activate()
+    activate(app)
     return {"status": "activation_completed", "jobs": str(active_jobs)}
 
 
