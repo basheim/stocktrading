@@ -19,14 +19,17 @@ def orchestrator():
     assessments = create_histories(long_term, short_term, current, stocks)
     # Determine if buy or sell
     buy_assessments = 0
+    current_app.logger.info("---------start assessment review----------")
     for assessment in assessments.values():
         if assessment.current.ask_price > 0:
             assessment.sell = should_sell(assessment)
             assessment.buy = should_buy(assessment)
+            current_app.logger.info(str(assessment))
             if assessment.buy:
                 buy_assessments += 1
             if assessment.sell:
                 sell(assessment)
+    current_app.logger.info("---------end assessment review----------")
     buying_power = float(get_account_info().buying_power)
     account = float(buying_power - (buying_power * 0.1)) // buy_assessments if buy_assessments > 0 else 0
     current_app.logger.info(f"account: {account}")
