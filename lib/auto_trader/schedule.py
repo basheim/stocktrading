@@ -3,6 +3,7 @@ from apscheduler.schedulers.base import Job
 from apscheduler.triggers.cron import CronTrigger
 from lib.auto_trader.v1.manager import orchestrator
 from lib.clients.rds_manager import get_stocks
+from lib.clients.backend_manager import get_stocks_backend
 
 scheduler = BackgroundScheduler()
 active_jobs: [Job] = []
@@ -25,6 +26,16 @@ def keep_db_open(app):
         scheduler.add_job(lambda: with_function(app, get_stocks), CronTrigger.from_crontab('0 * * * *', 'utc'),
                           replace_existing=True)
     )
+
+
+def keep_backend_db_open(app):
+    background_jobs.append(
+        scheduler.add_job(lambda: with_function(app, get_stocks_backend), CronTrigger.from_crontab('0 * * * *', 'utc'),
+                          replace_existing=True)
+    )
+
+
+def start_schedule():
     scheduler.start()
 
 
