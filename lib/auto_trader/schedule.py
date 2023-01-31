@@ -4,6 +4,7 @@ from apscheduler.triggers.cron import CronTrigger
 from lib.auto_trader.v1.manager import orchestrator
 from lib.clients.rds_manager import get_stocks
 from lib.clients.backend_manager import get_stocks_backend
+from flask import current_app
 
 scheduler = BackgroundScheduler()
 active_jobs: [Job] = []
@@ -41,4 +42,5 @@ def start_schedule():
 
 def with_function(app, func):
     with app.app_context():
+        current_app.logger.info(f"Background function: ${func.__name__}")
         func()
