@@ -108,7 +108,7 @@ def execute_sell(code: str, quantity: float) -> {}:
         symbol=code,
         qty=quantity,
         side=OrderSide.SELL,
-        time_in_force=TimeInForce.GTC
+        time_in_force=TimeInForce.DAY
     )
     return trading_client.submit_order(request)
 
