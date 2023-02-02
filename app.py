@@ -5,7 +5,7 @@ from flask_httpauth import HTTPBasicAuth
 from lib.clients.rds_manager import insert_stock, delete_stock
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
-from lib.auto_trader.schedule import activate, deactivate, active_jobs, keep_db_open, keep_backend_db_open, start_schedule
+from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs
 import json
 import logging
 
@@ -31,14 +31,20 @@ def health():
 @auth.login_required()
 def activate_method():
     activate(app)
-    return {"status": "activation_completed", "jobs": str(active_jobs)}
+    return {"status": "activation_completed", "jobs": str(running_jobs())}
+
+
+@app.get("/py/api/jobs")
+@auth.login_required()
+def get_jobs_method():
+    return {"status": "completed", "jobs": str(running_jobs())}
 
 
 @app.post("/py/api/deactivate")
 @auth.login_required()
 def deactivate_method():
     deactivate()
-    return {"status": "deactivation_completed", "jobs": str(active_jobs)}
+    return {"status": "deactivation_completed", "jobs": str(running_jobs())}
 
 
 @app.delete("/py/api/stock/<stock_id>")

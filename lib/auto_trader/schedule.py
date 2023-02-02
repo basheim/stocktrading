@@ -23,7 +23,11 @@ def activate(app):
 def deactivate():
     for _ in range(len(active_jobs)):
         job: Job = active_jobs.pop()
-        job.remove()
+        scheduler.remove_job(job.id)
+
+
+def running_jobs():
+    return scheduler.get_jobs()
 
 
 def keep_db_open(app):
