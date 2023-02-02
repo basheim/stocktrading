@@ -2,12 +2,14 @@ from pydantic import ValidationError
 from alpaca.common.exceptions import APIError
 from flask import Flask, request, Response
 from flask_httpauth import HTTPBasicAuth
-from lib.clients.rds_manager import insert_stock, delete_stock
+from lib.clients.rds_manager import insert_stock, delete_stock, get_stock
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
 from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs
+from lib.clients.alpaca_manager import execute_buy, execute_sell, get_order, cancel_order
 import json
 import logging
+from datetime import datetime, timezone
 
 auth = HTTPBasicAuth()
 app = Flask(__name__)
@@ -50,6 +52,15 @@ def deactivate_method():
 @app.delete("/py/api/stock/<stock_id>")
 @auth.login_required()
 def delete_stock_method(stock_id):
+    stock = get_stock(stock_id)
+    if stock and stock.quantity > 0:
+        now = datetime.now(timezone.utc)
+        if now.hour >= 21 or now.hour < 14 or (now.hour == 14 and now.minute < 30):
+            return {"status": "stock_not_deleted_due_to_time"}
+        try:
+            execute_sell(stock.code, stock.quantity)
+        except (APIError, ValidationError) as e:
+            return {"status": "stock_not_deleted_due_to_api_errors"}
     delete_stock(stock_id)
     return {"status": "stock_delete"}
 
