@@ -13,13 +13,17 @@ background_jobs: [Job] = []
 
 def activate(app):
     active_jobs.append(
-        scheduler.add_job(lambda: with_function(app, orchestrator), CronTrigger.from_crontab('0,30 15-20 * * mon-fri', 'utc'), replace_existing=True)
+        scheduler.add_job(lambda: with_function(app, orchestrator), CronTrigger.from_crontab('0,15,30,45 15-20 * * mon-fri', 'utc'), replace_existing=True)
+    )
+    active_jobs.append(
+        scheduler.add_job(lambda: with_function(app, orchestrator), CronTrigger.from_crontab('35,45 14 * * mon-fri', 'utc'), replace_existing=True)
     )
 
 
 def deactivate():
-    job: Job = active_jobs.pop()
-    job.remove()
+    for _ in range(len(active_jobs)):
+        job: Job = active_jobs.pop()
+        job.remove()
 
 
 def keep_db_open(app):

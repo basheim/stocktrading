@@ -1,10 +1,10 @@
 from lib.objects.history_assessment import HistoryAssessment
 
 
-MONTH_SLOPE_MIN = -10
+MONTH_SLOPE_MIN = -5
 WEEK_SLOPE_MIN = 0.01
 SHORT_TERM_SLOPE_MIN = 0.1
-MINIMUM_SELL = 0.95
+MINIMUM_SELL = 0.97
 
 
 def should_buy(assessment: HistoryAssessment):
