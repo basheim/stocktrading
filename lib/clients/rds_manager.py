@@ -73,10 +73,13 @@ def delete_stock(stock_id: str) -> None:
 
 
 def get_stock(stock_id: str) -> Stock:
-    return __fetch_sql(
+    stocks = __fetch_sql(
         "SELECT * FROM stocks WHERE id=%s;",
         tuple([stock_id])
     ).data
+    if len(stocks) == 0:
+        return Stock.build({})
+    return [Stock.build(x) for x in stocks][0]
 
 
 def __commit_sql(sql: str, parameters: [] = ()) -> None:

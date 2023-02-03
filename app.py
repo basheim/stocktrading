@@ -10,13 +10,14 @@ from lib.clients.alpaca_manager import execute_buy, execute_sell, get_order, can
 import json
 import logging
 from datetime import datetime, timezone
+from lib.auto_trader.v2.manager import orchestrator
 
 auth = HTTPBasicAuth()
 app = Flask(__name__)
 start_schedule()
 keep_db_open(app)
 keep_backend_db_open(app)
-
+orchestrator()
 
 if __name__ != '__main__':
     gunicorn_logger = logging.getLogger('gunicorn.error')
