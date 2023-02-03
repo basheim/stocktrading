@@ -13,10 +13,12 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
+import warnings
 
 
 def read_model():
     dataset = read_csv("./.tmp_data/raw_data.csv", header=0)
+    print(dataset.shape)
     array = dataset.values
     x = array[:, 0:3]
     y = array[:, 3]
@@ -36,6 +38,23 @@ def read_model():
         results.append(cv_results)
         names.append(name)
         print('%s: %f (%f)' % (name, cv_results.mean(), cv_results.std()))
-    pyplot.boxplot(results, labels=names)
-    pyplot.title('Algorithm Comparison')
-    pyplot.show()
+    # pyplot.boxplot(results, labels=names)
+    # pyplot.title('Algorithm Comparison')
+    # pyplot.show()
+    accuracy = 0
+    chosen_model = None
+    for m in models:
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                m[1].fit(x_train, y_train)
+                predictions = m[1].predict(x_validation)
+                if accuracy_score(y_validation, predictions) > accuracy:
+                    accuracy = accuracy_score(y_validation, predictions)
+                    chosen_model = m[1]
+            except Warning:
+                continue
+    if accuracy > 0.5:
+        print(f"valid model found with accuracy of {accuracy}")
+    else:
+        print(f"No model found. Closest accuracy = {accuracy}")

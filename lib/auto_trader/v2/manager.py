@@ -4,5 +4,7 @@ from lib.auto_trader.v2.data_model import read_model
 
 def orchestrator():
     stocks = get_stocks()
-    # write_complete_history(stocks[0].stock_id)
-    read_model()
+    for stock in stocks:
+        print(stock.code)
+        write_complete_history(stock.stock_id)
+        read_model()

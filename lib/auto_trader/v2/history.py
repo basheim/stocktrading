@@ -118,24 +118,36 @@ def __format_data(stock_id: str, dates: [date], hour_data: any, minute_data: any
         base_stock_data.week_hour_slope = hour_slope
         base_stock_data.day_minute_slope = minute_day_slope
         base_stock_data.hour_minute_slope = minute_hour_slope
-        buy = (hour_data[current][i].high + hour_data[current][i].low) / 2
-        pointer = 1
-        sell_aggregate = 0
-        for sell_data in range(i + 1, len(hour_data[current])):
-            sell = (hour_data[current][sell_data].high + hour_data[current][sell_data].low) / 2
-            sell_aggregate += sell
-            pointer += 1
-        for date_pointer in range(8, 10):
-            for sell_data in range(0, len(hour_data[dates[date_pointer]])):
-                sell = (hour_data[dates[date_pointer]][sell_data].high + hour_data[dates[date_pointer]][sell_data].low) / 2
-                sell_aggregate += sell
-                pointer += 1
-        profit = (sell_aggregate / (pointer - 1)) - buy
-        state = "hold"
-        if profit > 1:
+        # buy = (hour_data[current][i].high + hour_data[current][i].low) / 2
+        buy = hour_data[current][i].open
+        # pointer = 1
+        # sell_aggregate = 0
+        # for sell_data in range(i + 1, len(hour_data[current])):
+        #     sell = (hour_data[current][sell_data].high + hour_data[current][sell_data].low) / 2
+        #     sell_aggregate += sell
+        #     pointer += 1
+        # for date_pointer in range(8, 10):
+        #     for sell_data in range(0, len(hour_data[dates[date_pointer]])):
+        #         sell = (hour_data[dates[date_pointer]][sell_data].high + hour_data[dates[date_pointer]][sell_data].low) / 2
+        #         sell_aggregate += sell
+        #         pointer += 1
+        # profit = (sell_aggregate / (pointer - 1)) - buy
+        # 1 day
+        # if i + 1 < len(hour_data[current]):
+        #     sell = (hour_data[current][i + 1].high + hour_data[current][i + 1].low) / 2
+        # else:
+        #     sell = (hour_data[dates[8]][0].high + hour_data[dates[8]][0].low) / 2
+
+        if i + 1 < len(hour_data[current]):
+            sell = hour_data[current][i + 1].open
+        else:
+            sell = hour_data[dates[8]][0].open
+        # end of next day
+        # sell = (hour_data[dates[8]][-1].high + hour_data[dates[8]][-1].low) / 2
+        profit = sell - buy
+        state = "sell"
+        if profit > 0:
             state = "buy"
-        if profit < 0:
-            state = "sell"
         base_stock_data.state = state
         complete_data.append(base_stock_data)
     return complete_data
@@ -204,7 +216,7 @@ def __get_dates(data: [Bar]) -> [date]:
 
 def write_complete_history(stock_id: str) -> None:
     __generate_files()
-    __write_complete_history_helper(stock_id, 360, 5, "raw_data.csv")
+    __write_complete_history_helper(stock_id, 30, 1, "raw_data.csv")
 
 
 def __write_complete_history_helper(stock_id: str, start: int, end: int, file: str) -> None:
