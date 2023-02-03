@@ -5,11 +5,12 @@ from flask_httpauth import HTTPBasicAuth
 from lib.clients.rds_manager import insert_stock, delete_stock, get_stock
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
-from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs, refresh_connections
-from lib.clients.alpaca_manager import execute_buy, execute_sell, get_order, cancel_order
+from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs, refresh_connections, build_models
+from lib.clients.alpaca_manager import execute_sell
 import json
 import logging
 from datetime import datetime, timezone
+from lib.auto_trader.v2.manager import MLStockModels
 
 auth = HTTPBasicAuth()
 app = Flask(__name__)
@@ -17,6 +18,8 @@ start_schedule()
 keep_db_open(app)
 keep_backend_db_open(app)
 refresh_connections(app)
+ml_models = MLStockModels()
+build_models(app, ml_models)
 
 
 if __name__ != '__main__':
@@ -33,7 +36,7 @@ def health():
 @app.post("/py/api/activate")
 @auth.login_required()
 def activate_method():
-    activate(app)
+    activate(app, ml_models)
     return {"status": "activation_completed", "jobs": str(running_jobs())}
 
 

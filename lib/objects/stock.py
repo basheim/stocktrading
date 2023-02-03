@@ -6,7 +6,7 @@ class Stock:
     price: float
 
     @staticmethod
-    def build(sql_data: []):
+    def build(sql_data: {}):
         return Stock(
             sql_data["id"],
             sql_data["code"],
