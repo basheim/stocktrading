@@ -35,14 +35,21 @@ def running_jobs():
 
 def keep_db_open(app):
     background_jobs.append(
-        scheduler.add_job(lambda: with_function(app, get_stocks), CronTrigger.from_crontab('0 * * * *', 'utc'),
+        scheduler.add_job(lambda: with_function(app, get_stocks), CronTrigger.from_crontab('15 * * * *', 'utc'),
                           replace_existing=True)
     )
 
 
 def keep_backend_db_open(app):
     background_jobs.append(
-        scheduler.add_job(lambda: with_function(app, get_stocks_backend), CronTrigger.from_crontab('0 * * * *', 'utc'),
+        scheduler.add_job(lambda: with_function(app, get_stocks_backend), CronTrigger.from_crontab('10 * * * *', 'utc'),
+                          replace_existing=True)
+    )
+
+
+def build_models(app, ml_models):
+    background_jobs.append(
+        scheduler.add_job(lambda: with_function(app, ml_models.build_models), CronTrigger.from_crontab('0 0 * * *', 'utc'),
                           replace_existing=True)
     )
 

@@ -14,4 +14,4 @@ USER appuser
 
 EXPOSE 5050
 
-ENTRYPOINT ["gunicorn", "-w", "1", "-b", "0.0.0.0:5050", "--log-level", "info", "--access-logfile", "-", "--error-logfile", "-","app:app"]
+ENTRYPOINT ["gunicorn", "-w", "1", "-t", "120", "-b", "0.0.0.0:5050", "--log-level", "info", "--access-logfile", "-", "--error-logfile", "-","app:app"]

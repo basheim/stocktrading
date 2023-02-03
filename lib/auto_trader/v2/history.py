@@ -2,28 +2,33 @@ import subprocess
 import uuid
 import csv
 from datetime import datetime, timedelta, date
-from lib.clients.rds_manager import get_stock
 from math import inf
 from alpaca.data.models import Bar
 from lib.clients.alpaca_manager import get_historical_market_price, Steps
 from lib.auto_trader.v2.equations.predictions import get_slope_in_hours, get_slope_in_minutes
 
 
+negative_hour_range = 7
+positive_hour_range = 3
+negative_minute_range = 1
+positive_minute_range = 0
+
+
 class StockData:
     row_id: str
-    stock_id: str
+    stock_code: str
     hour_minute_slope: float
     day_minute_slope: float
     week_hour_slope: float
     state: str
 
-    def __init__(self, stock_id: str):
-        self.stock_id = stock_id
+    def __init__(self, stock_code: str):
+        self.stock_code = stock_code
         self.row_id = str(uuid.uuid4())
         self.hour_minute_slope = 0
         self.day_minute_slope = 0
         self.week_hour_slope = 0
-        self.state = "hold"
+        self.state = "sell"
 
     @staticmethod
     def build(stock_data):
@@ -44,7 +49,7 @@ class StockData:
     def __repr__(self):
         return str({
             "row_id": self.row_id,
-            "stock_id": self.stock_id,
+            "stock_code": self.stock_code,
             "hour_minute_slope": self.hour_minute_slope,
             "day_minute_slope": self.day_minute_slope,
             "week_hour_slope": self.week_hour_slope,
@@ -52,11 +57,25 @@ class StockData:
         })
 
 
-def __generate_files():
+def generate_base_files():
     subprocess.run("rm -rf ./.tmp_data || true".split())
     subprocess.run("mkdir ./.tmp_data".split())
     subprocess.run("touch ./.tmp_data/raw_data.csv".split())
     with open('./.tmp_data/raw_data.csv', 'w', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        # write the header
+        writer.writerow(StockData.get_headers())
+
+
+def delete_all_files():
+    subprocess.run("rm -rf ./.tmp_data || true".split())
+
+
+def __generate_files():
+    subprocess.run("rm -rf ./.tmp_data/.single || true".split())
+    subprocess.run("mkdir ./.tmp_data/.single".split())
+    subprocess.run("touch ./.tmp_data/.single/raw_data.csv".split())
+    with open('./.tmp_data/.single/raw_data.csv', 'w', encoding='UTF8') as f:
         writer = csv.writer(f)
         # write the header
         writer.writerow(StockData.get_headers())
@@ -71,7 +90,7 @@ def __generate_points(bar: Bar):
     return temp
 
 
-def __format_data(stock_id: str, dates: [date], hour_data: any, minute_data: any) -> [StockData]:
+def __format_data(stock_code: str, dates: [date], hour_data: any, minute_data: any) -> [StockData]:
     complete_data = []
     hour_history = []
     minute_day_history = []
@@ -114,7 +133,7 @@ def __format_data(stock_id: str, dates: [date], hour_data: any, minute_data: any
         if len(new_minute_hour_history) < 8:
             continue
         minute_hour_slope = get_slope_in_minutes(new_minute_hour_history, ["PRICE", "TIMESTAMP"])
-        base_stock_data = StockData(stock_id)
+        base_stock_data = StockData(stock_code)
         base_stock_data.week_hour_slope = hour_slope
         base_stock_data.day_minute_slope = minute_day_slope
         base_stock_data.hour_minute_slope = minute_hour_slope
@@ -162,7 +181,15 @@ def __write_data(csv_data: [StockData], file: str):
             writer.writerow(row.get_as_row())
 
 
-def __decrement_stock_days(d: datetime, days: int):
+def decrement_stock_hours(d: datetime, hours: int):
+    for _ in range(hours):
+        while not __is_stock_day(d):
+            d -= timedelta(hours=1)
+        d -= timedelta(hours=1)
+    return d
+
+
+def decrement_stock_days(d: datetime, days: int):
     for _ in range(days):
         while not __is_stock_day(d):
             d -= timedelta(days=1)
@@ -170,7 +197,7 @@ def __decrement_stock_days(d: datetime, days: int):
     return d
 
 
-def __increment_stock_days(d: datetime, days: int):
+def increment_stock_days(d: datetime, days: int):
     for _ in range(days):
         while not __is_stock_day(d):
             d += timedelta(days=1)
@@ -219,29 +246,25 @@ def write_complete_history(stock_id: str) -> None:
     __write_complete_history_helper(stock_id, 30, 1, "raw_data.csv")
 
 
-def __write_complete_history_helper(stock_id: str, start: int, end: int, file: str) -> None:
-    stock = get_stock(stock_id)
-    start = __decrement_stock_days(datetime.today().replace(hour=0, minute=0, second=0, microsecond=0), start)
+def __write_complete_history_helper(stock_code: str, start: int, end: int, file: str) -> None:
+    start = decrement_stock_days(datetime.today().replace(hour=0, minute=0, second=0, microsecond=0), start)
     current = start
-    end = __decrement_stock_days(datetime.today().replace(hour=0, minute=0, second=0, microsecond=0), end)
+    end = decrement_stock_days(datetime.today().replace(hour=0, minute=0, second=0, microsecond=0), end)
     step = 21
-    negative_hour_range = 7
-    positive_hour_range = 3
-    negative_minute_range = 1
-    positive_minute_range = 0
-    while __increment_stock_days(current, positive_hour_range) < end:
+
+    while increment_stock_days(current, positive_hour_range) < end:
         csv_data = []
-        hour_start = __decrement_stock_days(current, negative_hour_range)
-        minute_start = __decrement_stock_days(current, negative_minute_range)
-        temp_end = __increment_stock_days(current, step + positive_hour_range)
+        hour_start = decrement_stock_days(current, negative_hour_range)
+        minute_start = decrement_stock_days(current, negative_minute_range)
+        temp_end = increment_stock_days(current, step + positive_hour_range)
         while temp_end >= end:
-            temp_end = __decrement_stock_days(temp_end, 1)
+            temp_end = decrement_stock_days(temp_end, 1)
         hour_end = temp_end
-        minute_end = __increment_stock_days(__decrement_stock_days(temp_end, positive_hour_range), positive_minute_range)
+        minute_end = increment_stock_days(decrement_stock_days(temp_end, positive_hour_range), positive_minute_range)
         if minute_start >= minute_end or hour_start >= hour_end:
             break
-        hour_data = get_historical_market_price(code=stock.code, step=Steps.HOUR, start_time=hour_start, end_time=hour_end)
-        minute_data = get_historical_market_price(code=stock.code, step=Steps.MINUTE, start_time=minute_start, end_time=minute_end)
+        hour_data = get_historical_market_price(code=stock_code, step=Steps.HOUR, start_time=hour_start, end_time=hour_end)
+        minute_data = get_historical_market_price(code=stock_code, step=Steps.MINUTE, start_time=minute_start, end_time=minute_end)
         hour_data.sort(key=lambda x: x.timestamp)
         minute_data.sort(key=lambda x: x.timestamp)
         hour_dates = __get_dates(hour_data)
@@ -250,9 +273,30 @@ def __write_complete_history_helper(stock_id: str, start: int, end: int, file: s
         for i in range(len(minute_map.keys()) - (negative_minute_range + positive_minute_range)):
             if len(hour_dates[i:i + negative_hour_range + positive_hour_range]) < negative_hour_range + positive_hour_range:
                 continue
-            csv_data += __format_data(stock_id, hour_dates[i:i + negative_hour_range + positive_hour_range], hour_map, minute_map)
+            csv_data += __format_data(stock_code, hour_dates[i:i + negative_hour_range + positive_hour_range], hour_map, minute_map)
         current = datetime.combine(hour_dates[-2], datetime.min.time())
         __write_data(csv_data, file)
+        __write_data(csv_data, f".single/{file}")
+
+
+def get_current_history_slopes(stock_code: str, hour_data, minute_day_data, minute_hour_data) -> [StockData]:
+    hour_history = []
+    minute_day_history = []
+    minute_hour_history = []
+    for bar in hour_data:
+        hour_history += __generate_points(bar)
+    for bar in minute_day_data:
+        minute_day_history += __generate_points(bar)
+    for bar in minute_hour_data:
+        minute_hour_history += __generate_points(bar)
+    hour_slope = get_slope_in_hours(hour_history, ["PRICE", "TIMESTAMP"])
+    minute_day_slope = get_slope_in_minutes(minute_day_history, ["PRICE", "TIMESTAMP"])
+    minute_hour_slope = get_slope_in_minutes(minute_hour_history, ["PRICE", "TIMESTAMP"])
+    stock_data = StockData(stock_code)
+    stock_data.week_hour_slope = hour_slope
+    stock_data.day_minute_slope = minute_day_slope
+    stock_data.hour_minute_slope = minute_hour_slope
+    return stock_data
 
 
 
