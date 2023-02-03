@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from lib.objects.history_assessment import HistoryAssessment
 from datetime import datetime
 
 

@@ -77,7 +77,8 @@ def get_historical_market_prices(codes: [str], step: Steps, time_range: TimeRang
 
 
 def get_historical_market_price(code: str, step: Steps, time_range: TimeRange = None, start_time: datetime = None, end_time: datetime = None) -> [Bar]:
-    return get_historical_market_prices([code], step, time_range, start_time, end_time)[code]
+    data = get_historical_market_prices([code], step, time_range, start_time, end_time)
+    return data[code]
 
 
 def get_current_market_prices(codes: [str]) -> {str, Quote} or Quote:

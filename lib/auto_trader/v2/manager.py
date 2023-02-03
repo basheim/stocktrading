@@ -1,6 +1,8 @@
 from lib.auto_trader.v2.history import write_complete_history
-
+from lib.clients.rds_manager import get_stocks
+from lib.auto_trader.v2.data_model import read_model
 
 def orchestrator():
-    test_stock_id = "ef607e45-6005-493a-b9e3-b836c5e4f452"
-    write_complete_history(test_stock_id)
+    stocks = get_stocks()
+    # write_complete_history(stocks[0].stock_id)
+    read_model()
