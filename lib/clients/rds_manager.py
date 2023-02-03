@@ -6,15 +6,35 @@ from datetime import datetime
 import mysql.connector
 import json
 
+
+class DBConnection:
+    def __init__(self, host: str, user: str, password: str, database: str):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.connection = None
+        self.cursor = None
+
+    def connect(self):
+        self.connection = mysql.connector.connect(
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database
+        )
+        self.cursor = self.connection.cursor(buffered=True)
+
+
 __arn = "arn:aws:rds:us-west-2:796569311964:cluster:beans-sql-db"
 secret_json = json.loads(get_secret(Secret.DB)["SecretString"])
-__db = mysql.connector.connect(
-            host="beans-sql-db.clj2unssy8o7.us-west-2.rds.amazonaws.com",
-            user=secret_json["username"],
-            password=secret_json["password"],
-            database="monolith"
-        )
-__db_cursor = __db.cursor(buffered=True)
+__db = DBConnection(
+    host="beans-sql-db.clj2unssy8o7.us-west-2.rds.amazonaws.com",
+    user=secret_json["username"],
+    password=secret_json["password"],
+    database="monolith"
+)
+__db.connect()
 
 
 """
@@ -80,15 +100,15 @@ def get_stock(stock_id: str) -> Stock:
 
 
 def __commit_sql(sql: str, parameters: [] = ()) -> None:
-    __db_cursor.execute(sql, parameters)
-    __db.commit()
+    __db.cursor.execute(sql, parameters)
+    __db.connection.commit()
 
 
 def __fetch_sql(sql: str, parameters: [] = ()) -> SqlData:
-    __db_cursor.execute(sql, parameters)
+    __db.cursor.execute(sql, parameters)
     try:
-        columns = __db_cursor.column_names
-        responses = __db_cursor.fetchall()
+        columns = __db.cursor.column_names
+        responses = __db.cursor.fetchall()
         data = []
         for response in responses:
             temp = {}
