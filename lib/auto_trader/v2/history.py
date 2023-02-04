@@ -43,6 +43,9 @@ class StockData:
     def get_headers():
         return ["hour_minute_slope", "day_minute_slope", "week_hour_slope", "state"]
 
+    def get_as_num_row(self):
+        return [self.hour_minute_slope, self.day_minute_slope, self.week_hour_slope]
+
     def get_as_row(self):
         return [str(self.hour_minute_slope), str(self.day_minute_slope), str(self.week_hour_slope), str(self.state)]
 

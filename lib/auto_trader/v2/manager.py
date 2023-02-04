@@ -12,7 +12,6 @@ class MLStockModels:
 
     def __init__(self):
         self.models = {}
-        self.build_models()
 
     def build_models(self):
         self.models = {}
@@ -58,7 +57,7 @@ def orchestrator(ml_model):
         model = ml_model.get_model(stock.code)
         if model:
             stock_data = get_current_history_slopes(stock.code, hour_data[stock.code], minute_day_data[stock.code], minute_hour_data[stock.code])
-            prediction = model.predict([stock_data.get_as_row()])[0]
+            prediction = model.predict([stock_data.get_as_num_row()])[0]
             assessments.append(HistoryAssessment.build_limited(current_data[stock.code], stock, prediction))
 
     buy_assessments = []
