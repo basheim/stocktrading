@@ -2,7 +2,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import Job
 from apscheduler.triggers.cron import CronTrigger
 from lib.clients.rds_manager import get_stocks, __db
-from lib.auto_trader.v2.manager import orchestrator
+from lib.auto_trader.v3.manager import orchestrator, monitor, opening_price
 from lib.clients.backend_manager import get_stocks_backend
 from lib.misc.plant_refresh import refresh_plants
 from flask import current_app
@@ -13,7 +13,20 @@ background_jobs: [Job] = []
 
 
 def activate(app, ml_models):
-    pass
+    with_function(app, ml_models.build_models)
+    with_function(app, opening_price, tuple([ml_models]))
+    active_jobs.append(
+        scheduler.add_job(lambda: with_function(app, ml_models.build_models), CronTrigger.from_crontab('0 13 * * mon-fri', 'utc'), replace_existing=True)
+    )
+    active_jobs.append(
+        scheduler.add_job(lambda: with_function(app, orchestrator, tuple([ml_models])), CronTrigger.from_crontab('0 15 * * mon-fri', 'utc'), replace_existing=True)
+    )
+    active_jobs.append(
+        scheduler.add_job(lambda: with_function(app, opening_price, tuple([ml_models])), CronTrigger.from_crontab('40 14 * * mon-fri', 'utc'), replace_existing=True)
+    )
+    active_jobs.append(
+        scheduler.add_job(lambda: with_function(app, monitor, tuple([ml_models])), CronTrigger.from_crontab('30 15-20 * * mon-fri', 'utc'), replace_existing=True)
+    )
 
 
 def deactivate():
@@ -50,13 +63,6 @@ def keep_backend_db_open(app):
 def refresh_plants_schedule(app):
     background_jobs.append(
         scheduler.add_job(lambda: with_function(app, refresh_plants), CronTrigger.from_crontab('30 * * * *', 'utc'),
-                          replace_existing=True)
-    )
-
-
-def build_models(app, ml_models):
-    background_jobs.append(
-        scheduler.add_job(lambda: with_function(app, ml_models.build_models), CronTrigger.from_crontab('0 13 * * mon-fri', 'utc'),
                           replace_existing=True)
     )
 
