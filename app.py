@@ -2,7 +2,7 @@ from pydantic import ValidationError
 from alpaca.common.exceptions import APIError
 from flask import Flask, request, Response
 from flask_httpauth import HTTPBasicAuth
-from lib.clients.rds_manager import insert_stock, delete_stock, get_stock
+from lib.clients.rds_manager import insert_stock, delete_stock, get_stock, get_stocks, update_stock, get_transactions, delete_transaction, update_account
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
 from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs, refresh_connections, build_models
@@ -67,6 +67,35 @@ def delete_stock_method(stock_id):
             return {"status": "stock_not_deleted_due_to_api_errors"}
     delete_stock(stock_id)
     return {"status": "stock_delete"}
+
+
+@app.delete("/py/api/reset/stocks")
+@auth.login_required()
+def reset_stocks():
+    stocks = get_stocks()
+    for stock in stocks:
+        app.logger.info(f"Resetting stock {stock.code}")
+        update_stock(stock.stock_id, 0, 0)
+    return {"status": "all_stocks_reset"}
+
+
+@app.delete("/py/api/transactions")
+@auth.login_required()
+def delete_all_transactions():
+    transactions = get_transactions()
+    app.logger.info("Deleting all transactions")
+    for transaction in transactions:
+        delete_transaction(transaction.transaction_id)
+    return {"status": "all transactions_deleted"}
+
+
+@app.put("/py/api/account")
+@auth.login_required()
+def update_account_amount():
+    body = request.json
+    amount = body['amount']
+    update_account(amount)
+    return {"status": "updated_account"}
 
 
 @app.post("/py/api/stock")

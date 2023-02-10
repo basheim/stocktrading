@@ -1,6 +1,7 @@
 from lib.clients.secrets_manager import Secret, get_secret
 from lib.objects.sql_data import SqlData
 from lib.objects.stock import Stock
+from lib.objects.transaction import Transaction
 from uuid import uuid4
 from datetime import datetime
 import mysql.connector
@@ -59,6 +60,20 @@ def insert_transaction(stock_id: str, price: float, quantity: float, name: str, 
     __commit_sql(
         "INSERT INTO stock_transactions (id,stockId,name,quantity,price,action,date) VALUES (%s, %s, %s, %s, %s, %s, %s);",
         tuple([str(uuid4()), stock_id, name, quantity, price, action, str(date)])
+    )
+
+
+def get_transactions() -> [Transaction]:
+    transactions = __fetch_sql(
+        "SELECT * FROM stock_transactions;"
+    )
+    return [Transaction.build(x) for x in transactions.data]
+
+
+def delete_transaction(transaction_id: str) -> None:
+    __commit_sql(
+        "DELETE FROM stock_transactions WHERE id=%s;",
+        tuple([transaction_id])
     )
 
 
