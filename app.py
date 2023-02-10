@@ -18,8 +18,8 @@ start_schedule()
 keep_db_open(app)
 keep_backend_db_open(app)
 refresh_connections(app)
-ml_models = MLStockModels()
-build_models(app, ml_models)
+# ml_models = MLStockModels()
+# build_models(app, ml_models)
 
 
 if __name__ != '__main__':
@@ -36,7 +36,7 @@ def health():
 @app.post("/py/api/activate")
 @auth.login_required()
 def activate_method():
-    activate(app, ml_models)
+    # activate(app, ml_models)
     return {"status": "activation_completed", "jobs": str(running_jobs())}
 
 

@@ -12,13 +12,7 @@ background_jobs: [Job] = []
 
 
 def activate(app, ml_models):
-    with_function(app, ml_models.build_models)
-    active_jobs.append(
-        scheduler.add_job(lambda: with_function(app, orchestrator, tuple([ml_models])), CronTrigger.from_crontab('0,30 15-20 * * mon-fri', 'utc'), replace_existing=True)
-    )
-    active_jobs.append(
-        scheduler.add_job(lambda: with_function(app, orchestrator, tuple([ml_models])), CronTrigger.from_crontab('50 20 * * mon-fri', 'utc'), replace_existing=True)
-    )
+    pass
 
 
 def deactivate():
