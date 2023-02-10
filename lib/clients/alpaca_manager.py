@@ -33,40 +33,52 @@ market_client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
 class Steps(Enum):
     HOUR = 1
     DAY = 2
+    MINUTE = 3
 
 
 class TimeRange(Enum):
     DAY = 1
     WEEK = 2
     MONTH = 3
+    YEAR = 4
 
 
-def get_historical_market_prices(codes: [str], step: Steps, time_range: TimeRange) -> {str: [Bar]} or [Bar]:
-    days = 0
+def get_historical_market_prices(codes: [str], step: Steps, time_range: TimeRange = None, start_time: datetime = None, end_time: datetime = None) -> {str: [Bar]} or [Bar]:
+
     configured_step = TimeFrame.Day
-
     match step:
-        case Steps.HOUR: configured_step = TimeFrame.Hour
-        case Steps.DAY: configured_step = TimeFrame.Day
+        case Steps.HOUR:
+            configured_step = TimeFrame.Hour
+        case Steps.DAY:
+            configured_step = TimeFrame.Day
+        case Steps.MINUTE:
+            configured_step = TimeFrame.Minute
 
-    match time_range:
-        case TimeRange.DAY: days = 1
-        case TimeRange.WEEK: days = 7
-        case TimeRange.MONTH: days = 31
+    if time_range:
+        days = 0
 
-    start_time = datetime.today() - timedelta(days)
+        match time_range:
+            case TimeRange.DAY: days = 1
+            case TimeRange.WEEK: days = 7
+            case TimeRange.MONTH: days = 31
+            case TimeRange.YEAR: days = 365
+
+        start_time = datetime.today() - timedelta(days)
+        end_time = None
 
     return market_client.get_stock_bars(
         StockBarsRequest(
             symbol_or_symbols=codes,
             timeframe=configured_step,
-            start=start_time
+            start=start_time,
+            end=end_time
         )
     ).data
 
 
-def get_historical_market_price(code: str, step: Steps, time_range: TimeRange) -> [Bar]:
-    return get_historical_market_prices([code], step, time_range)[code]
+def get_historical_market_price(code: str, step: Steps, time_range: TimeRange = None, start_time: datetime = None, end_time: datetime = None) -> [Bar]:
+    data = get_historical_market_prices([code], step, time_range, start_time, end_time)
+    return data[code]
 
 
 def get_current_market_prices(codes: [str]) -> {str, Quote} or Quote:

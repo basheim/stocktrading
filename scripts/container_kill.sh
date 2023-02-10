@@ -1,4 +1,5 @@
 #!/bin/bash
 
 CONTAINER_ID=$(docker ps -a --filter "name=stock-trader" -q)
-docker logs "${CONTAINER_ID}" | grep -v "/py/api/health"
+docker stop "${CONTAINER_ID}"
+docker rm "${CONTAINER_ID}"

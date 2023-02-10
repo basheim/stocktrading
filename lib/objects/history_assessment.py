@@ -40,6 +40,21 @@ class HistoryAssessment:
         short_term_data.append([current.ask_price, current.timestamp])
         return HistoryAssessment(long_term, short_term, current, stock.code, long_term_data, short_term_data, stock.quantity, stock.price, stock.stock_id, stock.name)
 
+    @staticmethod
+    def build_limited(current: Quote, stock: Stock, prediction: str):
+        assessment = HistoryAssessment([], [], current, stock.code, [], [], stock.quantity, stock.price, stock.stock_id, stock.name)
+        if prediction == "buy":
+            assessment.buy = True
+        if prediction == "sell":
+            assessment.sell = True
+        return assessment
+
+    @staticmethod
+    def build_only_stock_data(current: Quote, stock: Stock):
+        assessment = HistoryAssessment([], [], current, stock.code, [], [], stock.quantity, stock.price, stock.stock_id,
+                                       stock.name)
+        return assessment
+
     def __init__(self, long_term: [Bar], short_term: [Bar], current: Quote, code: str, long_term_data: [[float, str]], short_term_data: [[float, str]], owned: float, owned_price: float, stock_id: str, name: str):
         self.long_term = long_term
         self.short_term = short_term
