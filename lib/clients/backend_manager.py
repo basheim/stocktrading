@@ -12,3 +12,11 @@ def get_stocks_backend():
         url="https://backend.programmingbean.com/api/v1/stocks"
     )
     return res.json()
+
+
+def get_last_plant_date():
+    res = request(
+        method="GET",
+        url="https://backend.programmingbean.com/api/v1/plants/latestDate"
+    )
+    return res.json()

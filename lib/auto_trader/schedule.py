@@ -4,6 +4,7 @@ from apscheduler.triggers.cron import CronTrigger
 from lib.clients.rds_manager import get_stocks, __db
 from lib.auto_trader.v2.manager import orchestrator
 from lib.clients.backend_manager import get_stocks_backend
+from lib.misc.plant_refresh import refresh_plants
 from flask import current_app
 
 scheduler = BackgroundScheduler()
@@ -42,6 +43,13 @@ def refresh_connections(app):
 def keep_backend_db_open(app):
     background_jobs.append(
         scheduler.add_job(lambda: with_function(app, get_stocks_backend), CronTrigger.from_crontab('20 * * * *', 'utc'),
+                          replace_existing=True)
+    )
+
+
+def refresh_plants_schedule(app):
+    background_jobs.append(
+        scheduler.add_job(lambda: with_function(app, refresh_plants), CronTrigger.from_crontab('30 * * * *', 'utc'),
                           replace_existing=True)
     )
 

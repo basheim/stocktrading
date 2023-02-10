@@ -5,7 +5,7 @@ from flask_httpauth import HTTPBasicAuth
 from lib.clients.rds_manager import insert_stock, delete_stock, get_stock, get_stocks, update_stock, get_transactions, delete_transaction, update_account
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
-from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs, refresh_connections, build_models
+from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs, refresh_connections, build_models, refresh_plants_schedule
 from lib.clients.alpaca_manager import execute_sell
 import json
 import logging
@@ -18,6 +18,7 @@ start_schedule()
 keep_db_open(app)
 keep_backend_db_open(app)
 refresh_connections(app)
+refresh_plants_schedule(app)
 # ml_models = MLStockModels()
 # build_models(app, ml_models)
 

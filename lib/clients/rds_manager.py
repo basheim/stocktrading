@@ -2,6 +2,7 @@ from lib.clients.secrets_manager import Secret, get_secret
 from lib.objects.sql_data import SqlData
 from lib.objects.stock import Stock
 from lib.objects.transaction import Transaction
+from lib.objects.selected_plant import SelectedPlant
 from uuid import uuid4
 from datetime import datetime
 import mysql.connector
@@ -74,6 +75,20 @@ def delete_transaction(transaction_id: str) -> None:
     __commit_sql(
         "DELETE FROM stock_transactions WHERE id=%s;",
         tuple([transaction_id])
+    )
+
+
+def get_selected_plants() -> [SelectedPlant]:
+    plants = __fetch_sql(
+        "SELECT * FROM selected_plants;"
+    )
+    return [SelectedPlant.build(x) for x in plants.data]
+
+
+def update_selected_plant(plant_id: str, start: datetime, end: datetime):
+    __commit_sql(
+        "UPDATE selected_plants SET start=%s, end=%s WHERE id=%s;",
+        tuple([plant_id, str(start), str(end)])
     )
 
 
