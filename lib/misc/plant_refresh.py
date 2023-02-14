@@ -1,6 +1,7 @@
 from lib.clients.backend_manager import get_last_plant_date
 from lib.clients.rds_manager import get_selected_plants, update_selected_plant
 from datetime import datetime, timedelta
+import pytz
 
 
 def refresh_plants():
@@ -16,6 +17,6 @@ def refresh_plants():
 
 
 def __should_refresh():
-    d = datetime.fromtimestamp(get_last_plant_date()["latestDate"])
-    now = datetime.now() + timedelta(days=1)
+    d = datetime.fromisoformat(get_last_plant_date()["latestDate"])
+    now = datetime.now(tz=pytz.timezone('utc')) + timedelta(days=1)
     return d < now

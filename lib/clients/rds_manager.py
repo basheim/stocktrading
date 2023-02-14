@@ -88,7 +88,7 @@ def get_selected_plants() -> [SelectedPlant]:
 def update_selected_plant(plant_id: str, start: datetime, end: datetime):
     __commit_sql(
         "UPDATE selected_plants SET start=%s, end=%s WHERE id=%s;",
-        tuple([plant_id, str(start), str(end)])
+        tuple([str(start), str(end), plant_id])
     )
 
 

@@ -18,3 +18,10 @@ class SelectedPlant:
         self.plant_id = plant_id
         self.start = start
         self.end = end
+
+    def __repr__(self):
+        return str({
+            "id" : self.plant_id,
+            "start": self.start,
+            "end": self.end
+        })
