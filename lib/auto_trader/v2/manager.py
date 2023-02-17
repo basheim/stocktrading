@@ -1,11 +1,14 @@
-from lib.auto_trader.v2.history import write_complete_history, generate_base_files, get_current_history_slopes, decrement_stock_days, decrement_stock_hours, negative_hour_range, negative_minute_range, delete_all_files
+from lib.auto_trader.v2.history import write_complete_history, get_current_history_slopes, negative_hour_range, negative_minute_range
 from lib.clients.rds_manager import get_stocks, update_account
 from lib.auto_trader.v2.data_model import find_model
 from lib.clients.alpaca_manager import get_account_info, get_current_market_prices, get_historical_market_prices, Steps
-from lib.auto_trader.v1.action import buy, sell
+from lib.auto_trader.generic.action import buy, sell
 from flask import current_app
 from datetime import datetime
 from lib.objects.history_assessment import HistoryAssessment
+from lib.auto_trader.generic.helpers import generate_base_files, delete_all_files
+from lib.auto_trader.generic.helpers import decrement_stock_days, decrement_stock_hours
+from lib.auto_trader.v2.history import StockData
 
 
 class MLStockModels:
@@ -16,7 +19,7 @@ class MLStockModels:
     def build_models(self):
         self.models = {}
         stocks = get_stocks()
-        generate_base_files()
+        generate_base_files(StockData.get_headers())
         for stock in stocks:
             current_app.logger.info(stock.code)
             write_complete_history(stock.code)

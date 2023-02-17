@@ -3,7 +3,7 @@ from lib.clients.alpaca_manager import get_historical_market_prices, get_current
 from lib.auto_trader.v1.history import create_histories
 from lib.auto_trader.v1.decision import should_buy, should_sell
 from lib.clients.alpaca_manager import get_account_info
-from lib.auto_trader.v1.action import buy, sell
+from lib.auto_trader.generic.action import buy, sell
 from flask import current_app
 
 
