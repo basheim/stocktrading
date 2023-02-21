@@ -91,7 +91,7 @@ def stock_wrapper(app, func, passed_args=tuple()):
     dates = date_range(open_date_range, frequency='1D')
     now = datetime.now(tz=timezone('UTC'))
     for date in dates:
-        converted_date = datetime.fromisoformat(date)
+        converted_date = datetime.fromisoformat(str(date))
         if converted_date.day == now.day and now < converted_date:
             with_function(app, func, passed_args)
             break

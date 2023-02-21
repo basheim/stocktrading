@@ -21,7 +21,6 @@ refresh_connections(app)
 refresh_plants_schedule(app)
 ml_models = MLStockModels()
 
-
 if __name__ != '__main__':
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
@@ -44,6 +43,12 @@ def activate_method():
 @auth.login_required()
 def get_jobs_method():
     return {"status": "completed", "jobs": str(running_jobs())}
+
+
+@app.get("/py/api/models")
+@auth.login_required()
+def get_models_method():
+    return {"status": "completed", "models": str(ml_models)}
 
 
 @app.post("/py/api/deactivate")
