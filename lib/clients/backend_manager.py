@@ -6,6 +6,14 @@ from requests import request
 secret_json = json.loads(get_secret(Secret.PASSWORD)["SecretString"])
 
 
+def get_post_ids_backend():
+    res = request(
+        method="GET",
+        url="https://backend.programmingbean.com/api/v1/posts/ids"
+    )
+    return res.json()
+
+
 def get_stocks_backend():
     res = request(
         method="GET",
