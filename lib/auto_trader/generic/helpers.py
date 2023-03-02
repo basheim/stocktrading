@@ -6,21 +6,21 @@ from alpaca.data.models import Bar
 
 
 def generate_base_files(headers: [str]):
-    subprocess.run("rm -rf ./.tmp_data || true".split())
-    subprocess.run("mkdir ./.tmp_data".split())
-    subprocess.run("touch ./.tmp_data/raw_data.csv".split())
-    with open('./.tmp_data/raw_data.csv', 'w', encoding='UTF8') as f:
+    subprocess.run("rm -rf ./.tmp/.tmp_data || true".split())
+    subprocess.run("mkdir ./.tmp/.tmp_data".split())
+    subprocess.run("touch ./.tmp/.tmp_data/raw_data.csv".split())
+    with open('./.tmp/.tmp_data/raw_data.csv', 'w', encoding='UTF8') as f:
         writer = csv.writer(f)
         # write the header
         writer.writerow(headers)
 
 
 def delete_all_files():
-    subprocess.run("rm -rf ./.tmp_data || true".split())
+    subprocess.run("rm -rf ./.tmp/.tmp_data || true".split())
 
 
 def write_data(csv_data: [any], file: str):
-    with open(f'./.tmp_data/{file}', 'a', encoding='UTF8') as f:
+    with open(f'./.tmp/.tmp_data/{file}', 'a', encoding='UTF8') as f:
         writer = csv.writer(f)
 
         for row in csv_data:
@@ -38,10 +38,10 @@ def generate_points(bar: Bar):
 
 
 def generate_single_files(headers: [str]):
-    subprocess.run("rm -rf ./.tmp_data/.single || true".split())
-    subprocess.run("mkdir ./.tmp_data/.single".split())
-    subprocess.run("touch ./.tmp_data/.single/raw_data.csv".split())
-    with open('./.tmp_data/.single/raw_data.csv', 'w', encoding='UTF8') as f:
+    subprocess.run("rm -rf ./.tmp/.tmp_data/.single || true".split())
+    subprocess.run("mkdir ./.tmp/.tmp_data/.single".split())
+    subprocess.run("touch ./.tmp/.tmp_data/.single/raw_data.csv".split())
+    with open('./.tmp/.tmp_data/.single/raw_data.csv', 'w', encoding='UTF8') as f:
         writer = csv.writer(f)
         # write the header
         writer.writerow(headers)
