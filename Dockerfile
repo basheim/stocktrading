@@ -5,13 +5,8 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
-RUN sh ./scripts/add_aws.sh
-
-RUN addgroup usergroup
-RUN adduser --no-create-home --disabled-password --ingroup usergroup appuser
-RUN chown -R appuser:usergroup /app
-USER appuser
+RUN sh ./scripts/setup_container.sh
 
 EXPOSE 5050
 
-ENTRYPOINT ["gunicorn", "-w", "1", "-t", "0", "-b", "0.0.0.0:5050", "--log-level", "info", "--access-logfile", "-", "--error-logfile", "-","app:app"]
+ENTRYPOINT ["supervisord", "-c", "supervisord.conf"]

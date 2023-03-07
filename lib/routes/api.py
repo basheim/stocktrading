@@ -1,73 +1,92 @@
 from pydantic import ValidationError
 from alpaca.common.exceptions import APIError
-from flask import Flask, request, Response
+from flask import request, Response, Blueprint, current_app
+from app.manager import manager
 from flask_httpauth import HTTPBasicAuth
 from lib.clients.rds_manager import insert_stock, delete_stock, get_stock, get_stocks, update_stock, get_transactions, delete_transaction, update_account
 from lib.clients.secrets_manager import get_secret, Secret
 from lib.clients.alpaca_manager import get_current_market_price
-from lib.auto_trader.schedule import activate, deactivate, keep_db_open, keep_backend_db_open, start_schedule, running_jobs, refresh_connections, refresh_plants_schedule, stock_wrapper
 from lib.clients.alpaca_manager import execute_sell
 import json
-import logging
 from datetime import datetime, timezone
-from lib.auto_trader.v3.manager import MLStockModels, orchestrator
+from lib.routes.tasks import initialize_models, initialize_monitors, initialize_opening_prices, execute_model_reviews
+from app.scheduling import activate, deactivate, running_jobs, start_schedule, refresh_plants_schedule, keep_db_open, keep_backend_db_open
+
 
 auth = HTTPBasicAuth()
-app = Flask(__name__)
-start_schedule()
-keep_db_open(app)
-keep_backend_db_open(app)
-refresh_connections(app)
-refresh_plants_schedule(app)
-ml_models = MLStockModels()
-
-if __name__ != '__main__':
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
+routes = Blueprint('routes', __name__)
 
 
-@app.get("/py/api/health")
+@routes.get("/py/api/health")
 def health():
     return {"status": "healthy"}
 
 
-@app.post("/py/api/activate")
+@routes.post("/py/api/force/models")
+@auth.login_required()
+def force_models_method():
+    result = initialize_models.delay()
+    return {"status": "done", "id": result.id}
+
+
+@routes.post("/py/api/force/monitors")
+@auth.login_required()
+def force_monitors_method():
+    result = initialize_monitors.delay()
+    return {"status": "done", "id": result.id}
+
+
+@routes.post("/py/api/force/opening_prices")
+@auth.login_required()
+def force_opening_price_method():
+    result = initialize_opening_prices.delay()
+    return {"status": "done", "id": result.id}
+
+
+@routes.post("/py/api/force/run")
+@auth.login_required()
+def force_run_method():
+    result = execute_model_reviews.delay()
+    return {"status": "done", "id": result.id}
+
+
+@routes.post("/py/api/activate")
 @auth.login_required()
 def activate_method():
-    activate(app, ml_models)
+    start_schedule()
+    keep_backend_db_open()
+    keep_db_open()
+    refresh_plants_schedule()
+    activate()
     return {"status": "activation_completed", "jobs": str(running_jobs())}
 
 
-@app.post("/py/api/run")
-@auth.login_required()
-def run_method():
-    if len(ml_models.models.keys()) == 0:
-        return {"status": "no_models"}
-    stock_wrapper(app, orchestrator, tuple([ml_models]))
-    return {"status": "run_complete"}
-
-
-@app.get("/py/api/jobs")
+@routes.get("/py/api/jobs")
 @auth.login_required()
 def get_jobs_method():
     return {"status": "completed", "jobs": str(running_jobs())}
 
 
-@app.get("/py/api/models")
-@auth.login_required()
-def get_models_method():
-    return {"status": "completed", "models": str(ml_models)}
-
-
-@app.post("/py/api/deactivate")
+@routes.post("/py/api/deactivate")
 @auth.login_required()
 def deactivate_method():
     deactivate()
     return {"status": "deactivation_completed", "jobs": str(running_jobs())}
 
 
-@app.delete("/py/api/stock/<stock_id>")
+@routes.get("/py/api/models")
+@auth.login_required()
+def get_models_method():
+    if manager.opening_prices.has_redis_data():
+        manager.opening_prices.load()
+    if manager.monitors.has_redis_data():
+        manager.monitors.load()
+    if manager.models.has_redis_data():
+        manager.models.load()
+    return {"status": "completed", "manager": str(manager)}
+
+
+@routes.delete("/py/api/stock/<stock_id>")
 @auth.login_required()
 def delete_stock_method(stock_id):
     stock = get_stock(stock_id)
@@ -83,27 +102,27 @@ def delete_stock_method(stock_id):
     return {"status": "stock_delete"}
 
 
-@app.delete("/py/api/reset/stocks")
+@routes.delete("/py/api/reset/stocks")
 @auth.login_required()
 def reset_stocks():
     stocks = get_stocks()
     for stock in stocks:
-        app.logger.info(f"Resetting stock {stock.code}")
+        current_app.logger.info(f"Resetting stock {stock.code}")
         update_stock(stock.stock_id, 0, 0)
     return {"status": "all_stocks_reset"}
 
 
-@app.delete("/py/api/transactions")
+@routes.delete("/py/api/transactions")
 @auth.login_required()
 def delete_all_transactions():
     transactions = get_transactions()
-    app.logger.info("Deleting all transactions")
+    current_app.logger.info("Deleting all transactions")
     for transaction in transactions:
         delete_transaction(transaction.transaction_id)
     return {"status": "all transactions_deleted"}
 
 
-@app.put("/py/api/account")
+@routes.put("/py/api/account")
 @auth.login_required()
 def update_account_amount():
     body = request.json
@@ -112,7 +131,7 @@ def update_account_amount():
     return {"status": "updated_account"}
 
 
-@app.post("/py/api/stock")
+@routes.post("/py/api/stock")
 @auth.login_required()
 def add_stock_method():
     body = request.json
@@ -121,7 +140,7 @@ def add_stock_method():
     try:
         get_current_market_price(code)
     except (APIError, ValidationError) as e:
-        app.logger.info(str(e))
+        current_app.logger.info(str(e))
         return Response(f'{{"error": "Validation Error", "code": "{code}"}}', status=400, mimetype="application/json")
     stock_id = insert_stock(name, code, 0, 0)
     return {"status": "stock_added", "data": stock_id}
