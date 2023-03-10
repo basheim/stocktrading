@@ -1,6 +1,5 @@
 #!/bin/bash
 
-sh ./scripts/add_aws.sh
 rm -rf .tmp || true
 mkdir .tmp
 groupadd app_grp

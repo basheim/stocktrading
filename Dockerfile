@@ -9,4 +9,4 @@ RUN sh ./scripts/setup_container.sh
 
 EXPOSE 5050
 
-ENTRYPOINT ["supervisord", "-c", "supervisord.conf"]
+ENTRYPOINT ["sh", "./scripts/run_container.sh"]
